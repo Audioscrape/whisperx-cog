@@ -1,0 +1,9 @@
+build:
+  gpu: true
+  cuda: "12.1"
+  python_version: "3.11"
+  system_packages:
+    - "ffmpeg"
+  python_requirements: "requirements.txt"
+
+predict: "predict.py:Predictor"

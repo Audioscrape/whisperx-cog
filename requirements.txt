@@ -1,0 +1,16 @@
+# PyTorch 2.5.1 with CUDA 12.1 (required by WhisperX 3.4.2)
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+
+# WhisperX from GitHub
+git+https://github.com/m-bain/whisperx.git
+
+# PyAnnote for speaker diarization
+pyannote.audio
+
+# Other dependencies
+ffmpeg-python
+pandas
+numpy

@@ -1,0 +1,10 @@
+*.pyc
+__pycache__
+.git
+.gitignore
+README.md
+*.log
+test_*
+*.mp3
+*.wav
+*.flac
