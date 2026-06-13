@@ -1,36 +1,152 @@
-# PyTorch 2.5.1 with CUDA 12.1 (WhisperX 3.8.6)
+# === GENERATED: prod whisperx-cog exact env + CAM++ additions ===
+# Base = the live prod cog's `pip freeze` (149.36.0.14), pinned exactly so the
+# diarization/ASR/256-dim-embedding stack is byte-identical to production.
+# Only the CAM++ (modelscope/3D-Speaker) packages are added on top.
 --extra-index-url https://download.pytorch.org/whl/cu121
-torch==2.5.1
-torchvision==0.20.1
-torchaudio==2.5.1
 
-# WhisperX — PINNED to the EXACT deployed version (was unpinned git+, which
-# made builds non-reproducible). Confirmed from the live prod node:
-# whisperx 3.4.2 + pyannote 3.3.2. We do NOT bump WhisperX here: 3.8.6
-# requires pyannote>=4.0 (a major diarization-engine change that would alter
-# the 256-dim embeddings) — that upgrade is a SEPARATE, deliberately-tested
-# change. Phase 2 only ADDS CAM++ to the current stack.
-whisperx==3.4.2
-# hyphen form (PEP 503 — pip treats it identically to "pyannote.audio"):
-# cog's requirements regenerator mis-parses the dotted name + version pin.
+aiohappyeyeballs==2.6.1
+aiohttp==3.12.15
+aiosignal==1.4.0
+alembic==1.16.4
+annotated-types==0.7.0
+antlr4-python3-runtime==4.9.3
+anyio==4.10.0
+asteroid-filterbanks==0.4.0
+attrs==23.2.0
+av==15.0.0
+certifi==2025.8.3
+cffi==1.17.1
+charset-normalizer==3.4.3
+click==8.2.1
+coloredlogs==15.0.1
+colorlog==6.9.0
+contourpy==1.3.3
+ctranslate2==4.4.0
+cycler==0.12.1
+docopt==0.6.2
+einops==0.8.1
+fastapi==0.115.14
+faster-whisper==1.2.0
+ffmpeg-python==0.2.0
+filelock==3.18.0
+flatbuffers==25.2.10
+fonttools==4.59.0
+frozenlist==1.7.0
+# fsspec relaxed from prod's 2025.5.1: CAM++-side datasets 2.18.0 caps it at
+# <=2024.2.0. fsspec is HF download plumbing (model fetch), not inference math.
+fsspec==2024.2.0
+future==1.0.0
+greenlet==3.2.4
+h11==0.16.0
+hf-xet==1.1.7
+httptools==0.6.4
+huggingface-hub==0.34.4
+humanfriendly==10.0
+HyperPyYAML==1.2.2
+idna==3.10
+Jinja2==3.1.6
+joblib==1.5.1
+julius==0.2.7
+kiwisolver==1.4.9
+lightning==2.5.2
+lightning-utilities==0.15.2
+Mako==1.3.10
+markdown-it-py==3.0.0
+MarkupSafe==3.0.2
+matplotlib==3.10.5
+mdurl==0.1.2
+mpmath==1.3.0
+multidict==6.6.3
+networkx==3.5
+nltk==3.9.1
+numpy==2.3.1
+nvidia-cublas-cu12==12.1.3.1
+nvidia-cuda-cupti-cu12==12.1.105
+nvidia-cuda-nvrtc-cu12==12.1.105
+nvidia-cuda-runtime-cu12==12.1.105
+nvidia-cudnn-cu12==9.1.0.70
+nvidia-cufft-cu12==11.0.2.54
+nvidia-curand-cu12==10.3.2.106
+nvidia-cusolver-cu12==11.4.5.107
+nvidia-cusparse-cu12==12.1.0.106
+nvidia-nccl-cu12==2.21.5
+nvidia-nvjitlink-cu12==12.9.86
+nvidia-nvtx-cu12==12.1.105
+omegaconf==2.3.0
+onnxruntime==1.22.1
+opencv-python==4.10.0.84
+optuna==4.4.0
+packaging==25.0
+pandas==2.3.1
+pillow==11.3.0
+primePy==1.3
+propcache==0.3.2
+protobuf==6.31.1
 pyannote-audio==3.3.2
+pyannote-core==5.0.0
+pyannote-database==5.1.3
+pyannote-metrics==3.2.1
+pyannote-pipeline==3.0.1
+pycparser==2.22
+pydantic==2.11.7
+pydantic-core==2.33.2
+Pygments==2.19.2
+pyparsing==3.2.3
+python-dateutil==2.9.0.post0
+python-dotenv==1.1.1
+pytorch-lightning==2.5.2
+pytorch-metric-learning==2.8.1
+pytz==2025.2
+PyYAML==6.0.2
+regex==2025.7.34
+requests==2.32.4
+rich==14.1.0
+ruamel-yaml==0.18.14
+ruamel-yaml-clib==0.2.12
+safetensors==0.6.2
+scikit-learn==1.7.1
+scipy==1.16.1
+semver==3.0.4
+sentencepiece==0.2.0
+shellingham==1.5.4
+six==1.17.0
+sniffio==1.3.1
+sortedcontainers==2.4.0
+soundfile==0.13.1
+speechbrain==1.0.3
+SQLAlchemy==2.0.42
+starlette==0.46.2
+structlog==24.4.0
+sympy==1.13.1
+tabulate==0.9.0
+tensorboardX==2.6.4
+threadpoolctl==3.6.0
+tokenizers==0.21.4
+torch==2.5.1
+torch-audiomentations==0.12.0
+torch-pitch-shift==1.2.5
+torchaudio==2.5.1
+torchmetrics==1.8.1
+torchvision==0.20.1
+tqdm==4.67.1
+transformers==4.55.0
+triton==3.1.0
+typer==0.16.0
+typing-inspection==0.4.1
+typing-extensions==4.14.1
+tzdata==2025.2
+urllib3==2.5.0
+uvicorn==0.35.0
+uvloop==0.21.0
+watchfiles==1.1.0
+websockets==15.0.1
+whisperx @ git+https://github.com/m-bain/whisperx.git@2d9ce44329ae73af2520196d31cd14b6192ace44
+yarl==1.20.1
 
-# --- CAM++ second speaker embedding (3D-Speaker, 192-dim) -------------------
-# Same dep set proven on the dedicated embeddings cog. NOTE: that cog ran
-# torch 2.1.2 / py3.10; here it must co-exist with WhisperX's torch 2.5.1 /
-# py3.11. If `cog build` cannot resolve this, fall back to a co-located
-# sidecar instead of fusing. The four lazy-import deps (addict/simplejson/
-# sortedcontainers/datasets) are required by modelscope's sv pipeline.
+# --- CAM++ second speaker embedding (3D-Speaker / ModelScope, 192-dim) ---
 modelscope==1.20.1
 oss2==2.18.4
 addict==2.4.0
 simplejson==3.19.2
-sortedcontainers==2.4.0
 datasets==2.18.0
-soundfile==0.12.1
 librosa==0.10.1
-
-# Other dependencies
-ffmpeg-python
-pandas
-numpy>=2.0.2
