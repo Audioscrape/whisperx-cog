@@ -69,7 +69,21 @@ class Predictor(BasePredictor):
         
         # Diarization pipeline (loaded on-demand)
         self.diarize_model = None
-        
+
+        # CAM++ second speaker embedding (3D-Speaker, 192-dim). Loaded once;
+        # import + load inside try so a failure here can NEVER break
+        # transcription — the CAM++ embeddings are strictly additive.
+        self.cam_model = None
+        try:
+            from modelscope.pipelines import pipeline as ms_pipeline
+            self.cam_model = ms_pipeline(
+                task="speaker-verification",
+                model="iic/speech_campplus_sv_zh_en_16k-common_advanced",
+            )
+            print("Loaded CAM++ speaker-embedding model (192-dim)")
+        except Exception as e:
+            print(f"Warning: CAM++ model not loaded; cam embeddings disabled: {e}")
+
         # Setup complete
     
     def predict(
@@ -156,7 +170,13 @@ class Predictor(BasePredictor):
         
         # Step 4: Post-process and validate
         segments = self._postprocess_segments(result.get("segments", []))
-        
+
+        # Step 4b: CAM++ second embedding per speaker (additive). Uses the
+        # already-decoded audio_array + the diarized segments — no re-download.
+        cam_speaker_embeddings = {}
+        if enable_diarization:
+            cam_speaker_embeddings = self._cam_speaker_embeddings(audio_array, segments)
+
         # Count statistics
         num_segments = len(segments)
         speakers = set(s.get("speaker") for s in segments if "speaker" in s)
@@ -183,7 +203,13 @@ class Predictor(BasePredictor):
         if speaker_embeddings:
             output["speaker_embeddings"] = speaker_embeddings
             output["metadata"]["embeddings_dims"] = len(next(iter(speaker_embeddings.values())))
-        
+
+        # CAM++ embeddings, kept in a separate field so existing consumers
+        # are byte-for-byte unaffected until they opt in to reading it.
+        if cam_speaker_embeddings:
+            output["cam_speaker_embeddings"] = cam_speaker_embeddings
+            output["metadata"]["cam_embeddings_dims"] = len(next(iter(cam_speaker_embeddings.values())))
+
         print(f"Complete: {num_segments} segments, {num_speakers} speakers")
         return output
     
@@ -308,6 +334,57 @@ class Predictor(BasePredictor):
             # Return original result without speakers
             return result, None
     
+    def _cam_speaker_embeddings(self, audio_array, segments: list) -> Dict[str, list]:
+        """One L2-normalized CAM++ (192-dim) embedding per speaker, from the
+        in-memory 16k audio.
+
+        Strictly additive: any failure returns {} (or skips a speaker) so it
+        can never affect transcription or the existing pyannote embeddings.
+        """
+        if self.cam_model is None:
+            return {}
+        try:
+            import tempfile
+            import soundfile as sf
+            SR = 16000
+            # Gather each speaker's segment time ranges.
+            by_speaker: Dict[str, list] = {}
+            for s in segments:
+                spk = s.get("speaker")
+                st, en = s.get("start"), s.get("end")
+                if spk is None or st is None or en is None:
+                    continue
+                by_speaker.setdefault(spk, []).append((float(st), float(en)))
+
+            out: Dict[str, list] = {}
+            for spk, ranges in by_speaker.items():
+                # Up to ~20s of this speaker's longest (clearest) turns.
+                chunks, total = [], 0.0
+                for st, en in sorted(ranges, key=lambda r: r[1] - r[0], reverse=True):
+                    if total >= 20.0:
+                        break
+                    a, b = int(max(0.0, st) * SR), int(en * SR)
+                    if b > a:
+                        chunks.append(audio_array[a:b])
+                        total += (en - st)
+                if not chunks:
+                    continue
+                wav = np.concatenate(chunks).astype("float32")
+                if len(wav) < SR:  # <1s of audio is too little to fingerprint
+                    continue
+                with tempfile.NamedTemporaryFile(suffix=".wav") as tf:
+                    sf.write(tf.name, wav, SR)
+                    res = self.cam_model([tf.name, tf.name], output_emb=True)
+                emb = np.asarray(res["embs"][0], dtype="float32")
+                norm = float(np.linalg.norm(emb))
+                if norm > 0:
+                    emb = emb / norm
+                out[spk] = emb.tolist()
+            return out
+        except Exception as e:
+            print(f"Warning: CAM++ embeddings failed (skipping): {e}")
+            return {}
+
     def _postprocess_segments(self, segments: list) -> list:
         """Clean and validate segments for output."""
         processed = []

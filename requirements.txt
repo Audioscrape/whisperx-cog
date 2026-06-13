@@ -1,16 +1,33 @@
-# PyTorch 2.5.1 with CUDA 12.1 (required by WhisperX 3.4.2)
+# PyTorch 2.5.1 with CUDA 12.1 (WhisperX 3.8.6)
 --extra-index-url https://download.pytorch.org/whl/cu121
 torch==2.5.1
 torchvision==0.20.1
 torchaudio==2.5.1
 
-# WhisperX from GitHub
-git+https://github.com/m-bain/whisperx.git
+# WhisperX — PINNED (was unpinned git+, which made builds non-reproducible
+# and silently drifted). 3.8.6 has the merged return_embeddings API (PR #1085)
+# plus word-timestamp accuracy fixes.
+whisperx==3.8.6
 
-# PyAnnote for speaker diarization
-pyannote.audio
+# PyAnnote — PINNED to the last-known-good (from requirements.txt.backup).
+pyannote.audio==3.1.1
+
+# --- CAM++ second speaker embedding (3D-Speaker, 192-dim) -------------------
+# Same dep set proven on the dedicated embeddings cog. NOTE: that cog ran
+# torch 2.1.2 / py3.10; here it must co-exist with WhisperX's torch 2.5.1 /
+# py3.11. If `cog build` cannot resolve this, fall back to a co-located
+# sidecar instead of fusing. The four lazy-import deps (addict/simplejson/
+# sortedcontainers/datasets) are required by modelscope's sv pipeline.
+modelscope==1.20.1
+oss2==2.18.4
+addict==2.4.0
+simplejson==3.19.2
+sortedcontainers==2.4.0
+datasets==2.18.0
+soundfile==0.12.1
+librosa==0.10.1
 
 # Other dependencies
 ffmpeg-python
 pandas
-numpy
+numpy<2
