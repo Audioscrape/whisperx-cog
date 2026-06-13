@@ -4,13 +4,14 @@ torch==2.5.1
 torchvision==0.20.1
 torchaudio==2.5.1
 
-# WhisperX — PINNED (was unpinned git+, which made builds non-reproducible
-# and silently drifted). 3.8.6 has the merged return_embeddings API (PR #1085)
-# plus word-timestamp accuracy fixes.
-whisperx==3.8.6
-
-# PyAnnote — PINNED to the last-known-good (from requirements.txt.backup).
-pyannote.audio==3.1.1
+# WhisperX — PINNED to the EXACT deployed version (was unpinned git+, which
+# made builds non-reproducible). Confirmed from the live prod node:
+# whisperx 3.4.2 + pyannote 3.3.2. We do NOT bump WhisperX here: 3.8.6
+# requires pyannote>=4.0 (a major diarization-engine change that would alter
+# the 256-dim embeddings) — that upgrade is a SEPARATE, deliberately-tested
+# change. Phase 2 only ADDS CAM++ to the current stack.
+whisperx==3.4.2
+pyannote.audio==3.3.2
 
 # --- CAM++ second speaker embedding (3D-Speaker, 192-dim) -------------------
 # Same dep set proven on the dedicated embeddings cog. NOTE: that cog ran
