@@ -1,6 +1,6 @@
 """
 Production WhisperX Cog for Audioscrape
-Handles everything from 5-minute news briefs to 4-hour Joe Rogan episodes
+Handles everything from 5-minute news briefs to 8-hour government meetings
 """
 
 import os
@@ -20,7 +20,11 @@ class Predictor(BasePredictor):
     """WhisperX optimized for podcast transcription with speaker tracking."""
     
     # Memory thresholds
-    MAX_AUDIO_LENGTH_SECONDS = 4 * 3600  # 4 hours max
+    # 8h: government meetings routinely run 4-9h (GH#155). ASR is windowed
+    # (constant VRAM) and batch_size already clamps to 4 for >60min audio;
+    # the length-sensitive part is diarization clustering, tested to ~8h.
+    # Beyond that, chunked transcription (app-side fan-out) is the plan.
+    MAX_AUDIO_LENGTH_SECONDS = 8 * 3600  # 8 hours max
     CHUNK_LENGTH_SECONDS = 30 * 60  # Process in 30-min chunks for long audio
     
     def setup(self):
@@ -127,7 +131,7 @@ class Predictor(BasePredictor):
     ) -> Dict[str, Any]:
         """
         Transcribe audio with speaker identification and embeddings.
-        Handles everything from 5-minute podcasts to 4-hour episodes.
+        Handles everything from 5-minute podcasts to 8-hour meetings.
         """
         print(f"Processing: {audio}")
         
@@ -138,7 +142,7 @@ class Predictor(BasePredictor):
         
         # Validate duration
         if duration_seconds > self.MAX_AUDIO_LENGTH_SECONDS:
-            raise ValueError(f"Audio too long: {duration_minutes:.1f} minutes (max: 240 minutes)")
+            raise ValueError(f"Audio too long: {duration_minutes:.1f} minutes (max: {self.MAX_AUDIO_LENGTH_SECONDS // 60} minutes)")
         
         # Adjust batch size for long audio (memory optimization)
         if duration_minutes > 60:
