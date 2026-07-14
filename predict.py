@@ -24,7 +24,15 @@ class Predictor(BasePredictor):
     # (constant VRAM) and batch_size already clamps to 4 for >60min audio;
     # the length-sensitive part is diarization clustering, tested to ~8h.
     # Beyond that, chunked transcription (app-side fan-out) is the plan.
-    MAX_AUDIO_LENGTH_SECONDS = 8 * 3600  # 8 hours max
+    #
+    # GH#189: 12h + 120s grace. The +120s absorbs nominally-8h/12h recordings
+    # that run seconds long (Granicus cuts at the hour + trailing seconds;
+    # they failed `> 8h` while DISPLAYING as "480.0 minutes"). 12h keeps
+    # ~40% RAM headroom on the 20GB cog VMs (waveform is ~230MB/audio-hour
+    # float32@16k, pipeline peaks at a small multiple); an uncapped input
+    # (20h+ stream rips) would OOM-kill the cog mid-job — the cap is OOM
+    # armor, not content policy.
+    MAX_AUDIO_LENGTH_SECONDS = 12 * 3600 + 120
     CHUNK_LENGTH_SECONDS = 30 * 60  # Process in 30-min chunks for long audio
     
     def setup(self):
